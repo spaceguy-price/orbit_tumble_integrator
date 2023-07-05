@@ -3,9 +3,9 @@
 Project imports orbital information and generates rigid body tumble motion using a 4th Order Runge-Kutta Integrator. The code outputs two files, the tumble attitude and the sun vector. Both are expressed in quaternion.
 
 
-|<img src=../../docs/media/orbit_LLA.png width=300>|<img src=../../docs/media/orbit_ECI.png width=300>|
+|<img src=orbit_LLA.png width=300>|<img src=orbit_ECI.png width=300>|
 |---|---|
-|<img src=../../docs/media/sunV_Hill.png width=300>|<img src=../../docs/media/omega.png width=300>|
+|<img src=sunV_Hill.png width=300>|<img src=omega.png width=300>|
 
 # Requirements
 |Matlab Version| R2023a|
