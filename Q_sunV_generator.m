@@ -8,7 +8,7 @@
 %  ---------- ------ --------------------------------------------------
 %  2019/07/11 mnoah  original code (orbit and different frames)
 %  2021/12/14 aprice included tumble integrator and sun-angle progression
-%  2023/02/02 aprice updated for phase 2 of the KHI project
+%  2023/02/02 aprice updated for phase 2 of the CRD2 project
 %  2023/05/22 aprice commented code for handoff to SRL orbital
 
 % As of 10 Dec, 2021 the sun is 147,329,779 km from Earth
@@ -45,14 +45,14 @@ mu = 3.98618e14; % [m3/s2] Earth's geocentric gravitational constant
 ID = 33500;                             % [int] TLE object identifier. See ./utils/getSatelliteTLE.m to add different orbits.
 dtUTC = datetime('now', 'TimeZone','Z');% dtUTC = datetime(2023, 5, 25, 12, 0, 0, 'TimeZone', 'Z'). The date influences position in orbit and sun vector calculation.
 number_orbits = 1;                      % [double]  Number of orbits to simulate
-sunV_ECI = approxECISunPosition(dtUTC); % Sun Vector Settings [x,y,z] unit vector. NOTE: KHI project special request sun vector can be found in section "Obtain sun vector" (~line 200)
+sunV_ECI = approxECISunPosition(dtUTC); % Sun Vector Settings [x,y,z] unit vector. NOTE: project partner special request sun vector can be found in section "Obtain sun vector" (~line 200)
 sunV_ECI = sunV_ECI/norm(sunV_ECI);     % Or enter your own vector. Example: sunV = [1,0,0];
 orbit_plot = true;                      % If you want MATLAB to generate three different plots visualizing the orbit
 
 % Tumble Motion Settings
 Q_import = false;                       % [boolean] If importing tumble motion data set to true
 % If importing tumble data (Q_import = true)
-import_filename = 'KHI_gravity_gradient_motion_array.mat'; % File path of the data to be imported
+import_filename = 'gravity_gradient_motion_array.mat'; % File path of the data to be imported
 import_time_step = 1;                   % [s] The imported data has a timestep that may be different than our requested timestep
 % If generating tumble data (Q_import = false)
 q_initial = [1,0,0,0]';                 % Initial attitude quaternion [qw, qx, qy, qz]' 
@@ -193,7 +193,7 @@ Z_hillF = Y_orbitF;
 clear eul ipt X_orbitF Y_orbitF Z_orbitF
 
 %% Obtain sun vector in the Hill frame
-% Create special case sun vectors (KHI Project Request)
+% Create special case sun vectors (Project Partner Request)
 %{
 % Z_hillF is the orbital plane normal vector
 Z_ = Z_hillF(1,:);
@@ -229,7 +229,7 @@ clear p r ipt R n_orbits input45 Z_
 % Generate Motion
 if Q_import == false
     sim_t = number_orbits*OE.orbital_period;    %[s] simulation duration
-    % NOTE: the sim_viewer coordinate frame does not necessarily match the frame defined by KHI
+    % NOTE: the sim_viewer coordinate frame does not necessarily match the frame defined by the project partner
     [targetQ] = tumble_integrator(q_initial, w_initial, I, dt, sim_t, sim_plot, sim_viewer);
 
 % Import Motion
@@ -238,19 +238,19 @@ else
     load(import_filename)
 
     % 2) Separate the data into vectors
-    t = KHI_data(:,1);          %[s] Time
-    theta_in = KHI_data(:,2);   %[deg] In-plane angle
-    theta_out = KHI_data(:,3);  %[deg] Out-of-plane angle
-    pitch = KHI_data(:,4);      %[rad] Pitch angle
-    roll = KHI_data(:,5);       %[rad] Roll Angle
-    v_x = KHI_data(:,6);        %[m] Target nose vector in cartesian coordinates (Hill Frame)
-    v_y = KHI_data(:,7);
-    v_z = KHI_data(:,8);
+    t = motion_data(:,1);          %[s] Time
+    theta_in = motion_data(:,2);   %[deg] In-plane angle
+    theta_out = motion_data(:,3);  %[deg] Out-of-plane angle
+    pitch = motion_data(:,4);      %[rad] Pitch angle
+    roll = motion_data(:,5);       %[rad] Roll Angle
+    v_x = motion_data(:,6);        %[m] Target nose vector in cartesian coordinates (Hill Frame)
+    v_y = motion_data(:,7);
+    v_z = motion_data(:,8);
     ze = zeros(length(v_x),1);
 
     v_ = [v_x, v_y, v_z];
 
-    % Convert KHI frame to Blender Hill Frame
+    % Convert project partner frame to Blender Hill Frame
     % Rotate 90 degs positive about the y axis
     % Rotate 180 degs about the x axis
     RotY = [cos(-pi/2),0,sin(-pi/2); 0,1,0; -sin(-pi/2),0,cos(-pi/2)]; 
@@ -270,10 +270,10 @@ else
     %Q = eul2quat([yaw, ze, pi/2 - pitch], 'XYZ'); % Contains a LOT of roll
 
     % 5) Shorten the file to be the same length as three orbits
-    targetQ = quaternion(Q(1:uint32(OE.orbital_period/import_time_step),:));    %<--- NOTE: This depends on <number_orbits>, <time_step> and the KHI <import_time_step>
+    targetQ = quaternion(Q(1:uint32(OE.orbital_period/import_time_step),:));    %<--- NOTE: This depends on <number_orbits>, <time_step> and the project partner <import_time_step>
 end
 
-clear r check RotY RotZ v_x v_y v_z KHI_data
+clear r check RotY RotZ v_x v_y v_z motion_data
 
 %% Write to file
 % Downsample the tumble motion to match the requested timestep
